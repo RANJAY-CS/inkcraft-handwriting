@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text to Handwriting Converter</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Handwriting & UI -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Dancing+Script:wght@400;600&family=Homemade+Apple&family=Indie+Flower&family=Kalam:wght@300;400;700&family=Marck+Script&family=Patrick+Hand&family=Shadows+Into+Light&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .font-caveat { font-family: 'Caveat', cursive; }
+    .font-kalam { font-family: 'Kalam', cursive; }
+    .font-indie { font-family: 'Indie Flower', cursive; }
+    .font-patrick { font-family: 'Patrick Hand', cursive; }
+    .font-shadows { font-family: 'Shadows Into Light', cursive; }
+    .font-dancing { font-family: 'Dancing Script', cursive; }
+    .font-apple { font-family: 'Homemade Apple', cursive; }
+    .font-marck { font-family: 'Marck Script', cursive; }
+    
+    /* Paper shadow and preview styling */
+    .paper-shadow {
+      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.15), 0 0 1px 1px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Custom scrollbar for controls */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 px-4 py-3 shadow-sm">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-200">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-slate-900 leading-tight">InkCraft &bull; Text to Handwriting</h1>
+          <p class="text-xs text-slate-500">Convert digital text into authentic human handwriting</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button id="howToFontBtn" class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition-colors">
+          <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Own Handwriting Guide</span>
+        </button>
+
+        <button id="copyBtn" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors">
+          <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+          <span id="copyText">Preview &amp; Copy Image</span>
+        </button>
+
+        <button id="downloadBtn" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-300 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          <span>Download PNG</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto w-full flex-1 p-3 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- Left Column: Controls & Input (5 cols) -->
+    <div class="lg:col-span-5 flex flex-col gap-5">
+      
+      <!-- Text Area Card -->
+      <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+        <div class="flex items-center justify-between mb-2">
+          <label for="textInput" class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Input Text
+          </label>
+          <div class="flex items-center gap-1.5">
+            <span class="text-[11px] text-slate-400 font-medium">Quick load:</span>
+            <button id="presetLetter" class="text-[11px] px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium transition-colors">Letter</button>
+            <button id="presetAssignment" class="text-[11px] px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium transition-colors">Notes</button>
+            <button id="presetPoem" class="text-[11px] px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium transition-colors">Poem</button>
+          </div>
+        </div>
+
+        <textarea id="textInput" rows="6" class="w-full text-sm p-3 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition resize-y text-slate-700" placeholder="Type or paste your text here..."></textarea>
+        
+        <div class="flex items-center justify-between mt-2 text-xs text-slate-400">
+          <span id="charCount">0 characters</span>
+          <div class="flex items-center gap-3">
+            <button id="copyRawTextBtn" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium transition-colors">Copy text</button>
+            <button id="clearBtn" class="text-xs text-slate-500 hover:text-red-600 transition-colors">Clear text</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paper & Layout Setup Card -->
+      <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
+        <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Paper Size &amp; Page Ruling
+        </h2>
+
+        <!-- Paper Size and Paper Ruling Dropdowns -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="paperSizeSelect" class="block text-xs font-semibold text-slate-700 mb-1.5">Paper Size</label>
+            <select id="paperSizeSelect" class="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+              <option value="a4" selected>A4 (Standard 800 &times; 1130)</option>
+              <option value="letter">US Letter (800 &times; 1035)</option>
+              <option value="legal">US Legal (800 &times; 1280)</option>
+              <option value="a5">A5 Notebook (700 &times; 990)</option>
+              <option value="square">Square Memo (800 &times; 800)</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="paperType" class="block text-xs font-semibold text-slate-700 mb-1.5">Page Rule (Lines)</label>
+            <select id="paperType" class="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+              <option value="blank">Plain / Plane (No lines)</option>
+              <option value="ruled" selected>Standard Ruled (Blue lines)</option>
+              <option value="college">College Ruled (Narrow)</option>
+              <option value="legal">Yellow Legal Pad</option>
+              <option value="grid">Math Graph / Grid</option>
+              <option value="dotted">Bullet Dot Matrix</option>
+              <option value="parchment">Vintage Blank Parchment</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Super-Resolution Quality Booster -->
+        <div class="p-3 bg-gradient-to-r from-indigo-50/90 via-purple-50/80 to-indigo-50/90 border border-indigo-200/80 rounded-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <label for="qualitySelect" class="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span>Render Quality &amp; Resolution</span>
+            </label>
+            <div class="flex items-center gap-1.5">
+              <span id="qualityBadge" class="text-[10px] font-bold bg-indigo-600 text-white px-2 py-0.5 rounded-full shadow-xs">2x HD (1600×2260)</span>
+              <button type="button" id="boostQualityBtn" title="Increase Quality More!" class="text-[11px] font-bold bg-amber-500 hover:bg-amber-600 text-white px-2 py-0.5 rounded-md shadow-xs transition flex items-center gap-0.5 cursor-pointer">
+                <span>+ Boost More</span>
+              </button>
+            </div>
+          </div>
+
+          <select id="qualitySelect" class="w-full text-xs font-semibold bg-white border border-indigo-200 rounded-lg p-2 text-slate-800 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-600 outline-none">
+            <option value="1">1x &bull; Standard Web Quality (Fastest &bull; 96 DPI)</option>
+            <option value="2" selected>2x &bull; High Definition HD (Crisp &bull; 200 DPI)</option>
+            <option value="3">3x &bull; Ultra HD 4K Print (Sharp &bull; 300 DPI)</option>
+            <option value="4">4x &bull; Master Studio 8K (Super Fine &bull; 600 DPI)</option>
+            <option value="5">5x &bull; Extreme Archival Max (Ultra Print &bull; 1200 DPI)</option>
+          </select>
+
+          <div class="flex items-center justify-between pt-0.5 text-[11px] text-indigo-900">
+            <label class="flex items-center gap-1.5 cursor-pointer font-medium">
+              <input id="ultraInkDetailToggle" type="checkbox" checked class="rounded text-indigo-600 focus:ring-indigo-500">
+              <span>Micro-Ink Subpixel Bleed &amp; Deep Paper Fiber Texture</span>
+            </label>
+            <span id="dpiLabel" class="font-mono text-[10px] text-indigo-700 font-semibold">200 DPI</span>
+          </div>
+        </div>
+
+        <!-- Margin & Paper Feature Checkboxes -->
+        <div class="grid grid-cols-2 gap-2 pt-1 text-xs text-slate-700">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input id="marginLineToggle" type="checkbox" checked class="rounded text-indigo-600 focus:ring-indigo-500">
+            <span>Red Left Margin</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input id="punchHolesToggle" type="checkbox" checked class="rounded text-indigo-600 focus:ring-indigo-500">
+            <span>Binder Punch Holes</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input id="shadowToggle" type="checkbox" checked class="rounded text-indigo-600 focus:ring-indigo-500">
+            <span>Realistic Page Lighting</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input id="paperToneSelect" type="checkbox" class="rounded text-indigo-600 focus:ring-indigo-500">
+            <span>Ivory / Cream Tone</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Handwriting Style & Custom Upload Card -->
+      <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            </svg>
+            Handwriting Style
+          </h2>
+
+          <label for="fontFileInput" class="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg cursor-pointer transition border border-indigo-200">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            <span>Upload Font File</span>
+          </label>
+          <input type="file" id="fontFileInput" accept=".ttf,.otf,.woff,.woff2" class="hidden">
+        </div>
+
+        <!-- Custom Upload Notice Banner (Appears when user uploads font) -->
+        <div id="customFontBadge" class="hidden p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs text-emerald-800">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Custom font loaded: <strong id="customFontName">MyHandwriting</strong></span>
+          </div>
+          <button id="resetCustomFontBtn" class="text-[11px] text-emerald-700 underline font-medium hover:text-emerald-900">Remove</button>
+        </div>
+
+        <!-- Font Grid Selector -->
+        <div class="grid grid-cols-2 gap-2" id="fontSelector">
+          
+          <!-- Custom User Font Slot (dynamic) -->
+          <button type="button" id="userCustomFontBtn" data-font="UserCustomHandwriting" class="hidden font-btn border-2 border-emerald-600 bg-emerald-50/50 p-2 rounded-xl text-left transition flex items-center justify-between col-span-2">
+            <div>
+              <div class="text-base font-semibold leading-none text-emerald-900" id="userCustomFontLabel">My Uploaded Handwriting</div>
+              <div class="text-[10px] text-emerald-600 font-medium">Your uploaded personal font file</div>
+            </div>
+            <span class="text-[10px] bg-emerald-600 text-white font-bold px-1.5 py-0.5 rounded">CUSTOM</span>
+          </button>
+
+          <button type="button" data-font="Caveat" class="font-btn active border-2 border-indigo-600 bg-indigo-50/50 p-2 rounded-xl text-left transition flex items-center justify-between">
+            <div>
+              <div class="font-caveat text-lg leading-none text-slate-900">Caveat</div>
+              <div class="text-[10px] text-slate-500">Natural casual cursive</div>
+            </div>
+            <div class="w-2 h-2 rounded-full bg-indigo-600 dot"></div>
+          </button>
+
+          <button type="button" data-font="Kalam" class="font-btn border border-slate-200 hover:border-slate-300 p-2 rounded-xl text-left transition flex items-center justify-between">
+            <div>
+              <div class="font-kalam text-base leading-none text-slate-900">Kalam</div>
+              <div class="text-[10px] text-slate-500">Neat student print</div>
+            </div>
+            <div class="w-2 h-2 rounded-full bg-transparent dot"></div>
+          </button>
+
+          <button type="button" data-font="Indie Flower" class="font-btn border border-slate-200 hover:border-slate-300 p-2 rounded-xl text-left transition flex items-center justify-between">
+            <div>
+              <div class="font-indie text-base leading-none text-slate-900">Indie Flower</div>
+              <div class="text-[10px] text-slate-500">Playful bubbly style</div>
+            </div>
+            <div class="w-2 h-2 rounded-full bg-transparent dot"></div>
+          </button>
+
+          <button type="button" data-font="Patrick Hand" class="font-btn border border-slate-200 hover:border-slate-300 p-2 rounded-xl text-left transition flex items-center justify-between">
+            <div>
+              <div class="font-patrick text-base leading-none text-slate-900">Patrick Hand</div>
+              <div class="text-[10px] text-slate-500">Clear felt-tip marker</div>
+            </div>
+            <div class="w-2 h-2 rounded-full bg-transparent dot"></div>
+          </button>
+
+          <button type="button" data-font="Shadows Into Light" class="font-btn border border-slate-200 hover:border-slate-300 p-2 rounded-xl text-left transition flex items-center justify-between">
+            <div>
+              <div class="font-shadows text-sm leading-none text-slate-900">Shadows Into Light</div>
+              <div class="text-[10px] text-slate-500">Quick sharp notes</div>
+            </div>
+            <div class="w-2 h-2 rounded-full bg-transparent dot"></div>
+          </button>
+
+          <button type="button" data-font="Dancing Script" class="font-btn border border-slate-200 hover:border-slate-300 p-2 rounded-xl text-left transition flex items-center justify-between">
+            <div>
+              <div class="font-dancing text-base leading-none text-slate-900">Dancing Script</div>
+              <div class="text-[10px] text-slate-500">Formal calligraphy</div>
+            </div>
+            <div class="w-2 h-2 rounded-full bg-transparent dot"></div>
+          </button>
+
+          <button type="button" data-font="Homemade Apple" class="font-btn border border-slate-200 hover:border-slate-300 p-2 rounded-xl text-left transition flex items-center justify-between">
+            <div>
+              <div class="font-apple text-xs leading-none text-slate-900">Homemade Apple</div>
+              <div class="text-[10px] text-slate-500">Vintage quick script</div>
+            </div>
+            <div class="w-2 h-2 rounded-full bg-transparent dot"></div>
+          </button>
+
+          <button type="button" data-font="Marck Script" class="font-btn border border-slate-200 hover:border-slate-300 p-2 rounded-xl text-left transition flex items-center justify-between">
+            <div>
+              <div class="font-marck text-sm leading-none text-slate-900">Marck Script</div>
+              <div class="text-[10px] text-slate-500">Smooth fountain pen</div>
+            </div>
+            <div class="w-2 h-2 rounded-full bg-transparent dot"></div>
+          </button>
+        </div>
+
+        <!-- Ink Color & Pen Texture Controls -->
+        <div class="pt-3 border-t border-slate-100 space-y-3">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-semibold text-slate-700">Pen Ink Color Palette</label>
+            <span id="inkColorName" class="text-[11px] font-medium text-indigo-600">Ballpoint Blue</span>
+          </div>
+          
+          <div class="flex flex-wrap items-center gap-2" id="inkSelector">
+            <button type="button" data-color="#154360" data-name="Ballpoint Blue" title="Ballpoint Blue" class="ink-btn w-6 h-6 rounded-full bg-[#154360] ring-2 ring-offset-2 ring-indigo-600 transition"></button>
+            <button type="button" data-color="#1d4ed8" data-name="Royal Bic Blue" title="Royal Bic Blue" class="ink-btn w-6 h-6 rounded-full bg-[#1d4ed8] ring-0 ring-offset-2 ring-indigo-600 transition"></button>
+            <button type="button" data-color="#0f172a" data-name="Navy Midnight" title="Navy Midnight" class="ink-btn w-6 h-6 rounded-full bg-[#0f172a] ring-0 ring-offset-2 ring-indigo-600 transition"></button>
+            <button type="button" data-color="#1c2833" data-name="Gel Pen Black" title="Gel Pen Black" class="ink-btn w-6 h-6 rounded-full bg-[#1c2833] ring-0 ring-offset-2 ring-indigo-600 transition"></button>
+            <button type="button" data-color="#374151" data-name="Charcoal Grey" title="Charcoal Grey" class="ink-btn w-6 h-6 rounded-full bg-[#374151] ring-0 ring-offset-2 ring-indigo-600 transition"></button>
+            <button type="button" data-color="#64748b" data-name="2B Graphite Pencil" title="2B Graphite Pencil" class="ink-btn w-6 h-6 rounded-full bg-[#64748b] ring-0 ring-offset-2 ring-indigo-600 transition"></button>
+            <button type="button" data-color="#991b1b" data-name="Crimson Red" title="Crimson Red" class="ink-btn w-6 h-6 rounded-full bg-[#991b1b] ring-0 ring-offset-2 ring-indigo-600 transition"></button>
+            <button type="button" data-color="#be123c" data-name="Rose Wine" title="Rose Wine" class="ink-btn w-6 h-6 rounded-full bg-[#be123c] ring-0 ring-offset-2 ring-indigo-600 transition"></button>
+            <button type="button" data-color="#c2410c" data-name="Burnt Amber" title="Burnt Amber" class="ink-btn w-6 h-6 rounded-full bg-[#c2410c] ring-0 ring-offset-2 ring-indigo-600 transition"></button>
+            <button type="button" data-color="#0e6251" data-name="Emerald Green" title="Emerald Green" class="ink-btn w-6 h-6 rounded-full bg-[#0e6251] ring-0 ring-offset-2 ring-indigo-600 transition"></button>
+            <button type="button" data-color="#15803d" data-name="Forest Green" title="Forest Green" class="ink-btn w-6 h-6 rounded-full bg-[#15803d] ring-0 ring-offset-2 ring-indigo-600 transition"></button>
+            <button type="button" data-color="#0f766e" data-name="Turquoise Teal" title="Turquoise Teal" class="ink-btn w-6 h-6 rounded-full bg-[#0f766e] ring-0 ring-offset-2 ring-indigo-600 transition"></button>
+            <button type="button" data-color="#4a235a" data-name="Imperial Purple" title="Imperial Purple" class="ink-btn w-6 h-6 rounded-full bg-[#4a235a] ring-0 ring-offset-2 ring-indigo-600 transition"></button>
+            <button type="button" data-color="#6d28d9" data-name="Lavender Violet" title="Lavender Violet" class="ink-btn w-6 h-6 rounded-full bg-[#6d28d9] ring-0 ring-offset-2 ring-indigo-600 transition"></button>
+            <button type="button" data-color="#5c4033" data-name="Vintage Sepia" title="Vintage Sepia" class="ink-btn w-6 h-6 rounded-full bg-[#5c4033] ring-0 ring-offset-2 ring-indigo-600 transition"></button>
+
+            <!-- Custom Color Picker -->
+            <label title="Pick Any Custom Ink Color" class="relative w-6 h-6 rounded-full cursor-pointer flex items-center justify-center bg-gradient-to-tr from-pink-500 via-amber-400 to-cyan-500 ring-0 ring-offset-2 ring-indigo-600 shadow-xs hover:scale-105 transition" id="customColorWrap">
+              <input type="color" id="customInkPicker" value="#154360" class="sr-only">
+              <span class="w-2.5 h-2.5 rounded-full bg-white/90 pointer-events-none"></span>
+            </label>
+          </div>
+
+          <!-- Pen Nib / Texture Style & Intensity -->
+          <div class="p-3 bg-slate-50 border border-slate-200/90 rounded-xl space-y-2.5">
+            <div class="flex items-center justify-between">
+              <label for="penTypeSelect" class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+                <span>Pen Texture Style</span>
+              </label>
+              <select id="penTypeSelect" class="text-xs font-semibold bg-white border border-slate-200 rounded-lg px-2 py-1 text-slate-700 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+                <option value="ballpoint" selected>Ballpoint Pen (Dry Streaks &amp; Skip)</option>
+                <option value="gel">Gel Rollerball (Rich &amp; Wet)</option>
+                <option value="fountain">Fountain Pen (Shading &amp; Bleed)</option>
+                <option value="pencil">Graphite Pencil (Grainy Tooth)</option>
+                <option value="marker">Felt-Tip Marker (Bold &amp; Textured)</option>
+              </select>
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-medium text-slate-700">Pen Texture &amp; Paper Friction</span>
+                <div class="flex items-center gap-1">
+                  <button type="button" id="decTextureBtn" class="px-1.5 py-0.5 text-[10px] font-bold bg-white border border-slate-200 rounded hover:bg-slate-100 text-slate-700" title="Decrease Pen Texture">&minus;</button>
+                  <span id="penTextureVal" class="text-indigo-700 font-mono font-semibold min-w-[42px] text-center">45%</span>
+                  <button type="button" id="incTextureBtn" class="px-1.5 py-0.5 text-[10px] font-bold bg-white border border-slate-200 rounded hover:bg-slate-100 text-slate-700" title="Increase Pen Texture">+</button>
+                </div>
+              </div>
+              <input id="penTextureInput" type="range" min="0" max="100" value="45" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+              <p class="text-[10px] text-slate-400 leading-tight">Simulates real ink grain, dry ballpoint micro-voids, pencil tooth &amp; pressure shading.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sliders: Font size, Line height, Natural randomness -->
+        <div class="space-y-3 pt-2 border-t border-slate-100">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-medium text-slate-700">Font Size</span>
+            <span id="fontSizeVal" class="text-slate-500 font-mono">24px</span>
+          </div>
+          <input id="fontSizeInput" type="range" min="16" max="38" value="24" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+
+          <div class="flex items-center justify-between text-xs pt-1">
+            <span class="font-medium text-slate-700">Line Spacing / Grid Height</span>
+            <span id="lineHeightVal" class="text-slate-500 font-mono">36px</span>
+          </div>
+          <input id="lineHeightInput" type="range" min="24" max="54" value="36" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+
+          <div class="flex items-center justify-between text-xs pt-1">
+            <div class="flex items-center gap-1.5">
+              <span class="font-medium text-slate-700">Human Imperfection (Randomness)</span>
+              <span class="text-[10px] text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded font-semibold">Organic</span>
+            </div>
+            <span id="jitterVal" class="text-slate-500 font-mono">Moderate</span>
+          </div>
+          <input id="jitterInput" type="range" min="0" max="3" value="2" step="1" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Right Column: Live Paper Canvas Preview (7 cols) -->
+    <div class="lg:col-span-7 flex flex-col items-center">
+      
+      <!-- Top Canvas Toolbar -->
+      <div class="w-full flex items-center justify-between mb-3 px-1 text-xs text-slate-500">
+        <div class="flex items-center gap-2">
+          <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span id="dimensionLabel">Live Canvas (A4 &bull; 800 &times; 1130 px)</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <span id="statusIndicator" class="text-slate-400">Ready</span>
+          <button id="zoomResetBtn" class="hover:text-slate-900 transition-colors">Fit to screen</button>
+        </div>
+      </div>
+
+      <!-- Canvas Wrapper with realistic desk look -->
+      <div id="previewContainer" class="w-full flex justify-center overflow-auto p-4 bg-slate-200/80 rounded-2xl border border-slate-300/80 shadow-inner max-h-[820px]">
+        <div class="relative transition-transform duration-200 origin-top" id="zoomWrapper">
+          <canvas id="paperCanvas" width="1600" height="2260" style="width: 800px; height: auto;" class="paper-shadow rounded-sm bg-white max-w-full block"></canvas>
+        </div>
+      </div>
+
+      <!-- Action helper banner -->
+      <div class="mt-4 w-full bg-indigo-50/70 border border-indigo-100 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs text-indigo-900">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-indigo-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span><strong>Plain or Ruled:</strong> Switch between blank plain paper or ruled lines anytime, and upload any <code>.ttf/.otf</code> font of your handwriting!</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="regenerateJitterBtn" class="px-2.5 py-1 bg-white border border-indigo-200 rounded-lg font-medium hover:bg-indigo-50 transition text-indigo-700 shadow-sm flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Re-shuffle Ink
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Modal: Guide on how to make your own handwriting font -->
+  <div id="guideModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 relative">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">✍️</div>
+          <h3 class="text-base font-bold text-slate-900">How to Create Your Own Handwriting Font</h3>
+        </div>
+        <button id="closeModalBtn" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="mt-4 space-y-3 text-xs text-slate-600 leading-relaxed">
+        <p class="font-medium text-slate-800">You can easily turn your real physical handwriting into a font file (<code class="bg-slate-100 px-1 py-0.5 rounded text-indigo-700">.ttf</code> or <code class="bg-slate-100 px-1 py-0.5 rounded text-indigo-700">.otf</code>) for free in about 5 minutes:</p>
+        
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+          <div class="flex items-start gap-2">
+            <span class="w-5 h-5 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center flex-shrink-0 text-[10px]">1</span>
+            <span>Visit a free font generator like <strong>Calligraphr.com</strong> or <strong>YourFonts.com</strong>.</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="w-5 h-5 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center flex-shrink-0 text-[10px]">2</span>
+            <span>Print or digitally draw on their quick template sheet (writing letters A&ndash;Z and numbers in your normal pen style).</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="w-5 h-5 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center flex-shrink-0 text-[10px]">3</span>
+            <span>Take a photo or scan of the sheet and upload it to the site.</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="w-5 h-5 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center flex-shrink-0 text-[10px]">4</span>
+            <span>Download your generated <code>.ttf</code> or <code>.otf</code> font file!</span>
+          </div>
+        </div>
+
+        <p>Once downloaded, click the <strong>"Upload Font File"</strong> button in InkCraft, select your file, and your exact handwriting will immediately render on the page!</p>
+      </div>
+
+      <div class="mt-5 flex justify-end">
+        <button id="closeModalBottomBtn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-xs transition">Got It</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Image Preview & Right-Click Copy (Avoids iframe Clipboard API error) -->
+  <div id="imagePreviewModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-5 shadow-2xl border border-slate-200 flex flex-col max-h-[90vh]">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="text-sm font-bold text-slate-900">Handwritten Page Image</h3>
+          <p class="text-xs text-slate-500">Right-click (or long-press on mobile) the image below to copy, or click Download PNG.</p>
+        </div>
+        <button id="closeImageModalBtn" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="my-4 overflow-auto flex-1 bg-slate-100 p-4 rounded-xl flex justify-center items-start border border-slate-200">
+        <img id="renderedPreviewImg" alt="Rendered Handwritten Page" class="max-w-full h-auto shadow-md rounded border border-slate-300 bg-white" />
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+      <button id="modalDownloadBtn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-xs transition flex items-center gap-1.5">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        <span>Download Ultra-Res PNG</span>
+      </button>
+      <button id="closeImageModalBottomBtn" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow-xl flex items-center gap-2 transition-all transform translate-y-20 opacity-0 z-50 pointer-events-none">
+    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+    </svg>
+    <span id="toastMsg">Action complete</span>
+  </div>
+
+  <!-- JavaScript Logic -->
+  <script>
+    // Paper Dimension Presets (standard width = 800)
+    const PAPER_SIZES = {
+      a4: { name: 'A4', width: 800, height: 1130 },
+      letter: { name: 'US Letter', width: 800, height: 1035 },
+      legal: { name: 'US Legal', width: 800, height: 1280 },
+      a5: { name: 'A5 Notebook', width: 700, height: 990 },
+      square: { name: 'Square Memo', width: 800, height: 800 }
+    };
+
+    // App State
+    const state = {
+      text: `Dear Friend,\n\nYes! You can now choose between different paper sizes (A4, US Letter, Legal, A5, and Square), switch to completely plain/plane paper without any lines, or use lined notebook paper with custom margins.\n\nEven better: you can now click "Upload Font File" to load your very own custom handwriting font (.ttf, .otf, or .woff) and see your personal handwriting come to life!\n\nGive it a try with your own notes or assignments!\n\nBest regards,\nInkCraft`,
+      font: 'Caveat',
+      customFontFamily: null,
+      inkColor: '#154360',
+      penType: 'ballpoint', // 'ballpoint', 'gel', 'fountain', 'pencil', 'marker'
+      penTexture: 45, // 0 to 100% texture intensity
+      paperSize: 'a4',
+      paperType: 'ruled', // 'blank' (plane), 'ruled', 'college', 'legal', 'grid', 'dotted', 'parchment'
+      qualityScale: 2, // 1x to 5x Super-Resolution multiplier
+      ultraInkDetail: true, // High-res ink micro-bleed & paper fiber grain
+      showMargin: true,
+      creamTone: false,
+      fontSize: 24,
+      lineHeight: 36,
+      jitterLevel: 2, // 0: None, 1: Subtle, 2: Moderate, 3: High
+      showShadow: true,
+      punchHoles: true,
+      seed: 42
+    };
+
+    const QUALITY_META = {
+      1: { label: '1x Standard', dpi: '96 DPI' },
+      2: { label: '2x HD', dpi: '200 DPI' },
+      3: { label: '3x Ultra 4K', dpi: '300 DPI' },
+      4: { label: '4x Master 8K', dpi: '600 DPI' },
+      5: { label: '5x Extreme Max', dpi: '1200 DPI' }
+    };
+
+    // Preset Sample Texts
+    const PRESETS = {
+      letter: `Dear Sarah,\n\nI hope you are doing wonderful! I wanted to write to you to thank you for sending over the books last week. I've already finished the first two chapters and can't put it down.\n\nLet's definitely catch up for coffee this weekend when you're free.\n\nWarmly,\nAlex`,
+      assignment: `Physics 101 - Lecture 4 Notes\n\nTopic: Newton's Laws of Motion\n\n1. First Law (Law of Inertia):\nAn object at rest stays at rest, and an object in motion stays in motion with the same speed and direction unless acted upon by an external force.\n\n2. Second Law (F = m * a):\nThe acceleration of an object is directly proportional to the net force and inversely proportional to its mass.\n\n3. Third Law:\nFor every action, there is an equal and opposite reaction.`,
+      poem: `The Road Not Taken\nBy Robert Frost\n\nTwo roads diverged in a yellow wood,\nAnd sorry I could not travel both\nAnd be one traveler, long I stood\nAnd looked down one as far as I could\nTo where it bent in the undergrowth;\n\nI took the one less traveled by,\nAnd that has made all the difference.`
+    };
+
+    // DOM Elements
+    const canvas = document.getElementById('paperCanvas');
+    const ctx = canvas.getContext('2d');
+    const textInput = document.getElementById('textInput');
+    const charCount = document.getElementById('charCount');
+    const clearBtn = document.getElementById('clearBtn');
+    const copyRawTextBtn = document.getElementById('copyRawTextBtn');
+    const paperSizeSelect = document.getElementById('paperSizeSelect');
+    const paperTypeSelect = document.getElementById('paperType');
+    const qualitySelect = document.getElementById('qualitySelect');
+    const qualityBadge = document.getElementById('qualityBadge');
+    const boostQualityBtn = document.getElementById('boostQualityBtn');
+    const ultraInkDetailToggle = document.getElementById('ultraInkDetailToggle');
+    const dpiLabel = document.getElementById('dpiLabel');
+    const marginLineToggle = document.getElementById('marginLineToggle');
+    const paperToneSelect = document.getElementById('paperToneSelect');
+    const inkColorName = document.getElementById('inkColorName');
+    const customInkPicker = document.getElementById('customInkPicker');
+    const customColorWrap = document.getElementById('customColorWrap');
+    const penTypeSelect = document.getElementById('penTypeSelect');
+    const penTextureInput = document.getElementById('penTextureInput');
+    const penTextureVal = document.getElementById('penTextureVal');
+    const decTextureBtn = document.getElementById('decTextureBtn');
+    const incTextureBtn = document.getElementById('incTextureBtn');
+    const fontSizeInput = document.getElementById('fontSizeInput');
+    const fontSizeVal = document.getElementById('fontSizeVal');
+    const lineHeightInput = document.getElementById('lineHeightInput');
+    const lineHeightVal = document.getElementById('lineHeightVal');
+    const jitterInput = document.getElementById('jitterInput');
+    const jitterVal = document.getElementById('jitterVal');
+    const shadowToggle = document.getElementById('shadowToggle');
+    const punchHolesToggle = document.getElementById('punchHolesToggle');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMsg');
+    const statusIndicator = document.getElementById('statusIndicator');
+    const dimensionLabel = document.getElementById('dimensionLabel');
+    const regenerateJitterBtn = document.getElementById('regenerateJitterBtn');
+    const zoomResetBtn = document.getElementById('zoomResetBtn');
+    const zoomWrapper = document.getElementById('zoomWrapper');
+
+    // Font upload elements
+    const fontFileInput = document.getElementById('fontFileInput');
+    const userCustomFontBtn = document.getElementById('userCustomFontBtn');
+    const userCustomFontLabel = document.getElementById('userCustomFontLabel');
+    const customFontBadge = document.getElementById('customFontBadge');
+    const customFontName = document.getElementById('customFontName');
+    const resetCustomFontBtn = document.getElementById('resetCustomFontBtn');
+
+    // Guide Modal elements
+    const guideModal = document.getElementById('guideModal');
+    const howToFontBtn = document.getElementById('howToFontBtn');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const closeModalBottomBtn = document.getElementById('closeModalBottomBtn');
+
+    // Image Preview Modal elements
+    const imagePreviewModal = document.getElementById('imagePreviewModal');
+    const renderedPreviewImg = document.getElementById('renderedPreviewImg');
+    const closeImageModalBtn = document.getElementById('closeImageModalBtn');
+    const closeImageModalBottomBtn = document.getElementById('closeImageModalBottomBtn');
+    const modalDownloadBtn = document.getElementById('modalDownloadBtn');
+
+    // Pseudo-random number generator for reproducible jitter
+    function createPRNG(seed) {
+      let s = seed % 2147483647;
+      if (s <= 0) s += 2147483646;
+      return function() {
+        s = (s * 16807) % 2147483647;
+        return (s - 1) / 2147483646;
+      };
+    }
+
+    // Show Toast Notification
+    function showToast(message) {
+      toastMsg.textContent = message;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2500);
+    }
+
+    // Jitter Level Labels
+    const JITTER_LABELS = ['None', 'Subtle', 'Moderate', 'Heavy'];
+
+    // Update Paper Dimensions with Super-Sampling Quality Multiplier
+    function updateDimensions() {
+      const config = PAPER_SIZES[state.paperSize] || PAPER_SIZES.a4;
+      const scale = state.qualityScale || 1;
+      const actualWidth = config.width * scale;
+      const actualHeight = config.height * scale;
+
+      canvas.width = actualWidth;
+      canvas.height = actualHeight;
+      canvas.style.width = config.width + 'px';
+      canvas.style.height = 'auto';
+
+      const qMeta = QUALITY_META[scale] || QUALITY_META[2];
+      qualityBadge.textContent = `${qMeta.label} (${actualWidth}×${actualHeight})`;
+      dpiLabel.textContent = qMeta.dpi;
+      dimensionLabel.textContent = `Live Canvas (${config.name} • ${actualWidth} × ${actualHeight} px @ ${scale}x ${qMeta.dpi})`;
+    }
+
+    // Render Canvas
+    function render() {
+      statusIndicator.textContent = 'Rendering...';
+      const config = PAPER_SIZES[state.paperSize] || PAPER_SIZES.a4;
+      const width = config.width;
+      const height = config.height;
+      const scale = state.qualityScale || 1;
+      const prng = createPRNG(state.seed);
+
+      ctx.save();
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.scale(scale, scale);
+
+      // 1. Draw Paper Background (Color, Grid/Rule, Plain)
+      drawPaperBackground(ctx, width, height, prng);
+
+      // 2. Draw Binder Punch Holes
+      if (state.punchHoles) {
+        drawHoles(ctx, width, height);
+      }
+
+      // 3. Draw Handwritten Text
+      drawText(ctx, width, height, prng);
+
+      // 4. Draw Lighting/Shadow Vignette if enabled
+      if (state.showShadow) {
+        drawPaperLighting(ctx, width, height);
+      }
+
+      ctx.restore();
+      statusIndicator.textContent = `Rendered (${scale}x Ultra Quality)`;
+    }
+
+    // Draw Paper Background & Lines
+    function drawPaperBackground(ctx, width, height, prng) {
+      ctx.save();
+
+      // Base paper color
+      if (state.paperType === 'legal') {
+        ctx.fillStyle = '#fff9db'; // soft legal yellow
+      } else if (state.paperType === 'parchment') {
+        ctx.fillStyle = '#faf3e0'; // aged warm cream
+      } else if (state.creamTone) {
+        ctx.fillStyle = '#fdfbf7'; // natural ivory
+      } else {
+        ctx.fillStyle = '#ffffff'; // clean white
+      }
+      ctx.fillRect(0, 0, width, height);
+
+      // High-Resolution Fine Paper Fiber Texture when Ultra Detail is active
+      if (state.ultraInkDetail) {
+        const fiberCount = state.paperType === 'parchment' ? 5500 : 2200;
+        ctx.fillStyle = state.paperType === 'parchment' ? 'rgba(160, 130, 85, 0.035)' : 'rgba(100, 116, 139, 0.016)';
+        for (let i = 0; i < fiberCount; i++) {
+          const rx = prng() * width;
+          const ry = prng() * height;
+          const rw = 0.6 + prng() * 1.4;
+          ctx.fillRect(rx, ry, rw, 0.6);
+        }
+      } else if (state.paperType === 'parchment') {
+        ctx.fillStyle = 'rgba(180, 150, 100, 0.04)';
+        for (let i = 0; i < 3500; i++) {
+          const rx = prng() * width;
+          const ry = prng() * height;
+          ctx.fillRect(rx, ry, 1.5, 1.5);
+        }
+      }
+
+      const marginLeft = 95;
+      const marginTop = 90;
+      const lineSpacing = state.lineHeight;
+
+      // Draw Ruling Lines (if not 'blank' / 'parchment' plane)
+      if (state.paperType === 'ruled' || state.paperType === 'college' || state.paperType === 'legal') {
+        const spacing = state.paperType === 'college' ? Math.max(22, lineSpacing * 0.85) : lineSpacing;
+        
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = state.paperType === 'legal' ? 'rgba(70, 130, 180, 0.35)' : 'rgba(96, 165, 250, 0.4)';
+
+        // Horizontal lines
+        for (let y = marginTop; y < height - 40; y += spacing) {
+          ctx.beginPath();
+          ctx.moveTo(30, y);
+          ctx.lineTo(width - 30, y);
+          ctx.stroke();
+        }
+
+        // Left Margin Line
+        if (state.showMargin) {
+          ctx.beginPath();
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = 'rgba(239, 68, 68, 0.55)';
+          ctx.moveTo(marginLeft, 20);
+          ctx.lineTo(marginLeft, height - 20);
+          ctx.stroke();
+
+          // Second subtle margin line for legal style
+          if (state.paperType === 'legal') {
+            ctx.beginPath();
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.35)';
+            ctx.moveTo(marginLeft - 6, 20);
+            ctx.lineTo(marginLeft - 6, height - 20);
+            ctx.stroke();
+          }
+        }
+      } else if (state.paperType === 'grid') {
+        // Grid / Graph Paper
+        const gridSize = 24;
+        ctx.lineWidth = 0.75;
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+
+        for (let x = 30; x < width - 30; x += gridSize) {
+          ctx.beginPath();
+          ctx.moveTo(x, 30);
+          ctx.lineTo(x, height - 30);
+          ctx.stroke();
+        }
+        for (let y = 30; y < height - 30; y += gridSize) {
+          ctx.beginPath();
+          ctx.moveTo(30, y);
+          ctx.lineTo(width - 30, y);
+          ctx.stroke();
+        }
+
+        if (state.showMargin) {
+          ctx.beginPath();
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = 'rgba(239, 68, 68, 0.55)';
+          ctx.moveTo(marginLeft, 20);
+          ctx.lineTo(marginLeft, height - 20);
+          ctx.stroke();
+        }
+      } else if (state.paperType === 'dotted') {
+        // Bullet Journal Dotted Grid
+        const dotSpacing = 24;
+        ctx.fillStyle = 'rgba(100, 116, 139, 0.38)';
+        for (let x = 40; x < width - 30; x += dotSpacing) {
+          for (let y = 40; y < height - 30; y += dotSpacing) {
+            ctx.beginPath();
+            ctx.arc(x, y, 1.2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        if (state.showMargin) {
+          ctx.beginPath();
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = 'rgba(239, 68, 68, 0.55)';
+          ctx.moveTo(marginLeft, 20);
+          ctx.lineTo(marginLeft, height - 20);
+          ctx.stroke();
+        }
+      } else {
+        // 'blank' / 'parchment' -> Plain paper!
+        if (state.showMargin) {
+          ctx.beginPath();
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = 'rgba(239, 68, 68, 0.45)';
+          ctx.moveTo(marginLeft, 20);
+          ctx.lineTo(marginLeft, height - 20);
+          ctx.stroke();
+        }
+      }
+
+      ctx.restore();
+    }
+
+    // Draw realistic loose-leaf binder holes
+    function drawHoles(ctx, width, height) {
+      ctx.save();
+      const holeX = 35;
+      const positions = [height * 0.18, height * 0.5, height * 0.82];
+
+      positions.forEach(hy => {
+        ctx.beginPath();
+        ctx.arc(holeX, hy, 12, 0, Math.PI * 2);
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(holeX, hy, 10.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#cbd5e1';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(holeX, hy, 9.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#64748b';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(holeX, hy, 12.5, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      });
+
+      ctx.restore();
+    }
+
+    // Draw text with word-wrapping and natural jitter
+    function drawText(ctx, width, height, prng) {
+      ctx.save();
+      
+      const hasLeftMargin = state.showMargin || (state.paperType === 'ruled' || state.paperType === 'college' || state.paperType === 'legal');
+      const marginLeft = hasLeftMargin ? 115 : 70;
+      const marginRight = width - 60;
+      const maxWidth = marginRight - marginLeft;
+      let startY = 82;
+      const lineHeight = state.lineHeight;
+
+      ctx.fillStyle = state.inkColor;
+      ctx.textBaseline = 'alphabetic';
+
+      const rawLines = state.text.split('\n');
+      let currentY = startY;
+
+      const jitterConfig = [
+        { baseline: 0, rot: 0, size: 0, opacity: 0 },
+        { baseline: 0.8, rot: 0.008, size: 0.5, opacity: 0.05 },
+        { baseline: 1.8, rot: 0.018, size: 1.2, opacity: 0.10 },
+        { baseline: 3.2, rot: 0.035, size: 2.0, opacity: 0.18 }
+      ][state.jitterLevel];
+
+      const activeFont = state.customFontFamily || state.font;
+
+      rawLines.forEach(paragraph => {
+        if (paragraph.trim() === '') {
+          currentY += lineHeight;
+          return;
+        }
+
+        const words = paragraph.split(' ');
+        let currentLineWords = [];
+        let testLine = '';
+
+        for (let i = 0; i < words.length; i++) {
+          const testStr = testLine ? testLine + ' ' + words[i] : words[i];
+          ctx.font = `${state.fontSize}px "${activeFont}", cursive, sans-serif`;
+          const metrics = ctx.measureText(testStr);
+
+          if (metrics.width > maxWidth && i > 0) {
+            renderLineOfWords(ctx, currentLineWords, marginLeft, currentY, jitterConfig, prng, activeFont);
+            currentY += lineHeight;
+            currentLineWords = [words[i]];
+            testLine = words[i];
+          } else {
+            currentLineWords.push(words[i]);
+            testLine = testStr;
+          }
+        }
+
+        if (currentLineWords.length > 0) {
+          renderLineOfWords(ctx, currentLineWords, marginLeft, currentY, jitterConfig, prng, activeFont);
+          currentY += lineHeight;
+        }
+      });
+
+      ctx.restore();
+    }
+
+    // Render individual words with per-character micro-variations
+    function renderLineOfWords(ctx, words, startX, baseY, config, prng, activeFont) {
+      let cursorX = startX;
+      const texRatio = (state.penTexture || 0) / 100;
+      const pType = state.penType || 'ballpoint';
+
+      // Get paper background color for realistic ballpoint/pencil dry-brush grain cutouts
+      let paperBg = '#ffffff';
+      if (state.paperType === 'legal') paperBg = '#fff9db';
+      else if (state.paperType === 'parchment') paperBg = '#faf3e0';
+      else if (state.creamTone) paperBg = '#fdfbf7';
+
+      words.forEach((word, wIdx) => {
+        const wordAngle = (prng() - 0.5) * config.rot;
+        // Slight word-level pen pressure wave
+        const wordPressure = 0.88 + prng() * 0.12;
+
+        for (let cIdx = 0; cIdx < word.length; cIdx++) {
+          const char = word[cIdx];
+          
+          const baselineOffset = (prng() - 0.5) * config.baseline * 2;
+          const charSizeOffset = (prng() - 0.5) * config.size;
+          const charAngle = wordAngle + (prng() - 0.5) * (config.rot * 0.5);
+          const opacityVar = 1 - (prng() * config.opacity);
+
+          const charFontSize = Math.max(12, state.fontSize + charSizeOffset);
+          ctx.font = `${charFontSize}px "${activeFont}", cursive, sans-serif`;
+          const charMetrics = ctx.measureText(char);
+          const cw = Math.max(6, charMetrics.width);
+
+          ctx.save();
+          ctx.translate(cursorX, baseY + baselineOffset);
+          if (config.rot > 0) {
+            ctx.rotate(charAngle);
+          }
+
+          // Base alpha modulated by pen type and texture intensity
+          let baseAlpha = Math.max(0.65, opacityVar * wordPressure);
+          if (pType === 'pencil') {
+            baseAlpha = Math.max(0.42, baseAlpha * (0.85 - texRatio * 0.25));
+          } else if (pType === 'ballpoint') {
+            baseAlpha = Math.max(0.55, baseAlpha * (0.95 - texRatio * 0.15 * prng()));
+          }
+
+          ctx.fillStyle = state.inkColor;
+          ctx.strokeStyle = state.inkColor;
+          ctx.globalAlpha = baseAlpha;
+
+          // 1. Primary Stroke & Pen Nib Behavior
+          if (pType === 'fountain') {
+            // Fountain pen: wet ink edge feathering + nib pooling
+            ctx.shadowColor = state.inkColor;
+            ctx.shadowBlur = (state.ultraInkDetail ? 0.45 : 0.15) + texRatio * 1.1;
+            ctx.fillText(char, 0, 0);
+            ctx.shadowBlur = 0;
+            if (texRatio > 0.05) {
+              ctx.lineWidth = 0.35 + texRatio * 0.65;
+              ctx.globalAlpha = Math.min(1, baseAlpha * (0.3 + texRatio * 0.35));
+              ctx.strokeText(char, 0.15, 0.15);
+            }
+          } else if (pType === 'marker') {
+            // Felt-tip marker: bold fibrous stroke
+            ctx.lineWidth = 0.6 + texRatio * 1.1;
+            ctx.strokeText(char, 0, 0);
+            ctx.fillText(char, 0, 0);
+          } else if (pType === 'gel') {
+            // Gel pen: smooth glossy saturated center
+            ctx.shadowColor = state.inkColor;
+            ctx.shadowBlur = state.ultraInkDetail ? 0.35 : 0;
+            ctx.fillText(char, 0, 0);
+            ctx.shadowBlur = 0;
+            ctx.globalAlpha = Math.min(1, baseAlpha * 0.45);
+            ctx.fillText(char, 0.12, 0.12);
+          } else if (pType === 'pencil') {
+            // Graphite pencil: multi-pass jittered micro-fibers to mimic graphite on paper tooth
+            ctx.fillText(char, 0, 0);
+            const passes = Math.floor(1 + texRatio * 3);
+            for (let p = 0; p < passes; p++) {
+              ctx.globalAlpha = baseAlpha * (0.28 + prng() * 0.25);
+              const ox = (prng() - 0.5) * (0.9 + texRatio * 1.3);
+              const oy = (prng() - 0.5) * (0.9 + texRatio * 1.3);
+              ctx.fillText(char, ox, oy);
+            }
+          } else {
+            // Ballpoint pen: crisp ink with subtle roll friction
+            if (state.ultraInkDetail) {
+              ctx.shadowColor = state.inkColor;
+              ctx.shadowBlur = 0.25;
+            }
+            ctx.fillText(char, 0, 0);
+            ctx.shadowBlur = 0;
+            if (state.ultraInkDetail || texRatio > 0.2) {
+              ctx.globalAlpha = Math.min(1, baseAlpha * (0.35 - texRatio * 0.12));
+              ctx.fillText(char, 0.14, 0.08);
+            }
+          }
+
+          // 2. Physical Pen Texture & Paper-Tooth Grain (Increases/Decreases with slider)
+          if (texRatio > 0.02) {
+            ctx.fillStyle = paperBg;
+
+            if (pType === 'ballpoint' || pType === 'marker') {
+              // Ballpoint roller streaks & microscopic ink skips
+              const streakCount = Math.floor(texRatio * (pType === 'ballpoint' ? 7 : 5));
+              for (let s = 0; s < streakCount; s++) {
+                ctx.globalAlpha = (0.18 + prng() * 0.42) * texRatio;
+                const sx = prng() * cw;
+                const sy = -charFontSize * (0.12 + prng() * 0.65);
+                const sw = 1.2 + prng() * (cw * 0.45);
+                const sh = 0.35 + prng() * 0.55;
+                ctx.fillRect(sx, sy, sw, sh);
+              }
+            }
+
+            // Paper tooth pores & dry-brush grain across the character stroke
+            const grainMultiplier = pType === 'pencil' ? 22 : (pType === 'ballpoint' ? 14 : 9);
+            const grainCount = Math.floor(texRatio * grainMultiplier);
+            for (let g = 0; g < grainCount; g++) {
+              ctx.globalAlpha = (0.22 + prng() * 0.5) * texRatio;
+              const gx = prng() * cw;
+              const gy = -charFontSize * (0.05 + prng() * 0.72);
+              const gw = 0.45 + prng() * (0.9 + texRatio * 0.8);
+              const gh = 0.45 + prng() * (0.8 + texRatio * 0.6);
+              ctx.fillRect(gx, gy, gw, gh);
+            }
+
+            // Extra pigment spatter / graphite dust around stroke edges at higher texture levels
+            if (pType === 'pencil' || pType === 'fountain') {
+              ctx.fillStyle = state.inkColor;
+              const speckCount = Math.floor(texRatio * 10);
+              for (let k = 0; k < speckCount; k++) {
+                ctx.globalAlpha = (0.12 + prng() * 0.25) * texRatio;
+                const kx = prng() * cw;
+                const ky = -charFontSize * (0.05 + prng() * 0.75);
+                ctx.fillRect(kx, ky, 0.65, 0.65);
+              }
+            }
+          }
+
+          ctx.restore();
+
+          cursorX += charMetrics.width;
+        }
+
+        if (wIdx < words.length - 1) {
+          ctx.font = `${state.fontSize}px "${activeFont}", cursive, sans-serif`;
+          const spaceWidth = ctx.measureText(' ').width;
+          cursorX += spaceWidth;
+        }
+      });
+    }
+
+    // Realistic paper vignette, subtle top-down lighting & paper edges
+    function drawPaperLighting(ctx, width, height) {
+      ctx.save();
+
+      const grad = ctx.createLinearGradient(0, 0, 0, height);
+      grad.addColorStop(0, 'rgba(255, 255, 255, 0.35)');
+      grad.addColorStop(0.1, 'rgba(255, 255, 255, 0.05)');
+      grad.addColorStop(0.9, 'rgba(0, 0, 0, 0.02)');
+      grad.addColorStop(1, 'rgba(0, 0, 0, 0.07)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, width, height);
+
+      const leftGrad = ctx.createLinearGradient(0, 0, 45, 0);
+      leftGrad.addColorStop(0, 'rgba(0, 0, 0, 0.04)');
+      leftGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = leftGrad;
+      ctx.fillRect(0, 0, 45, height);
+
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(0.5, 0.5, width - 1, height - 1);
+
+      ctx.restore();
+    }
+
+    // Trigger PNG Download
+    function downloadCanvasPNG() {
+      const link = document.createElement('a');
+      link.download = `handwritten-${state.paperSize}-${state.qualityScale}x-ultra.png`;
+      link.href = canvas.toDataURL('image/png', 1.0);
+      link.click();
+      showToast(`Downloaded ${state.qualityScale}x Ultra-Res PNG (${canvas.width}×${canvas.height}px)!`);
+    }
+
+    // Event Listeners & Binding
+    function setupEvents() {
+      textInput.value = state.text;
+      updateCharCount();
+
+      textInput.addEventListener('input', (e) => {
+        state.text = e.target.value;
+        updateCharCount();
+        render();
+      });
+
+      // Copy Raw Text using iframe-safe execCommand
+      copyRawTextBtn.addEventListener('click', () => {
+        textInput.select();
+        document.execCommand('copy');
+        window.getSelection().removeAllRanges();
+        showToast('Input text copied to clipboard!');
+      });
+
+      // Clear button
+      clearBtn.addEventListener('click', () => {
+        textInput.value = '';
+        state.text = '';
+        updateCharCount();
+        render();
+      });
+
+      // Quick presets
+      document.getElementById('presetLetter').addEventListener('click', () => {
+        loadPreset('letter');
+      });
+      document.getElementById('presetAssignment').addEventListener('click', () => {
+        loadPreset('assignment');
+      });
+      document.getElementById('presetPoem').addEventListener('click', () => {
+        loadPreset('poem');
+      });
+
+      // Paper Size Select
+      paperSizeSelect.addEventListener('change', (e) => {
+        state.paperSize = e.target.value;
+        updateDimensions();
+        render();
+        showToast(`Paper size changed to ${PAPER_SIZES[state.paperSize].name}`);
+      });
+
+      // Quality Multiplier Select
+      qualitySelect.addEventListener('change', (e) => {
+        state.qualityScale = parseInt(e.target.value, 10);
+        updateDimensions();
+        render();
+        showToast(`Quality increased to ${QUALITY_META[state.qualityScale].label} (${canvas.width}×${canvas.height}px)`);
+      });
+
+      // "+ Boost More" Quick Quality Button
+      boostQualityBtn.addEventListener('click', () => {
+        if (state.qualityScale < 5) {
+          state.qualityScale += 1;
+        } else {
+          state.qualityScale = 1;
+        }
+        qualitySelect.value = String(state.qualityScale);
+        updateDimensions();
+        render();
+        showToast(`Quality set to ${QUALITY_META[state.qualityScale].label} (${canvas.width}×${canvas.height}px)!`);
+      });
+
+      // Ultra Ink & Paper Fiber Detail Toggle
+      ultraInkDetailToggle.addEventListener('change', (e) => {
+        state.ultraInkDetail = e.target.checked;
+        render();
+        showToast(state.ultraInkDetail ? 'Micro-ink & paper fiber detail enabled' : 'Standard ink rendering');
+      });
+
+      // Paper Type / Ruling Select (Plain, Ruled, College, etc.)
+      paperTypeSelect.addEventListener('change', (e) => {
+        state.paperType = e.target.value;
+        if (state.paperType === 'blank' || state.paperType === 'parchment') {
+          showToast('Page rule set to Plain / Blank');
+        } else {
+          showToast(`Page ruling set to ${paperTypeSelect.options[paperTypeSelect.selectedIndex].text}`);
+        }
+        render();
+      });
+
+      // Margin line checkbox
+      marginLineToggle.addEventListener('change', (e) => {
+        state.showMargin = e.target.checked;
+        render();
+      });
+
+      // Paper cream tone checkbox
+      paperToneSelect.addEventListener('change', (e) => {
+        state.creamTone = e.target.checked;
+        render();
+      });
+
+      // Font selection buttons
+      const fontBtns = document.querySelectorAll('.font-btn');
+      fontBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const font = btn.getAttribute('data-font');
+          if (font === 'UserCustomHandwriting' && state.customFontFamily) {
+            state.font = state.customFontFamily;
+          } else {
+            state.customFontFamily = null;
+            state.font = font;
+          }
+
+          setActiveFontButton(btn);
+          render();
+        });
+      });
+
+      // Custom Font File Upload (.ttf, .otf, .woff, .woff2)
+      fontFileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+          const fontName = 'CustomFont_' + Date.now();
+          const arrayBuffer = await file.arrayBuffer();
+          const customFont = new FontFace(fontName, arrayBuffer);
+          
+          showToast('Loading font...');
+          await customFont.load();
+          document.fonts.add(customFont);
+
+          state.customFontFamily = fontName;
+          state.font = fontName;
+
+          const cleanName = file.name.replace(/\.[^/.]+$/, "");
+          userCustomFontLabel.textContent = cleanName.length > 20 ? cleanName.substring(0, 18) + '...' : cleanName;
+          customFontName.textContent = file.name;
+          customFontBadge.classList.remove('hidden');
+          userCustomFontBtn.classList.remove('hidden');
+
+          setActiveFontButton(userCustomFontBtn);
+          render();
+          showToast(`Handwriting font "${file.name}" loaded!`);
+        } catch (err) {
+          console.error('Error loading font file:', err);
+          showToast('Failed to load font. Please provide a valid .ttf, .otf, or .woff file.');
+        }
+      });
+
+      // Reset Custom Font
+      resetCustomFontBtn.addEventListener('click', () => {
+        state.customFontFamily = null;
+        state.font = 'Caveat';
+        customFontBadge.classList.add('hidden');
+        userCustomFontBtn.classList.add('hidden');
+        fontFileInput.value = '';
+
+        const defaultBtn = document.querySelector('[data-font="Caveat"]');
+        if (defaultBtn) setActiveFontButton(defaultBtn);
+        render();
+        showToast('Reverted to default handwriting');
+      });
+
+      // Ink selection buttons
+      const inkBtns = document.querySelectorAll('.ink-btn');
+      inkBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const color = btn.getAttribute('data-color');
+          const name = btn.getAttribute('data-name') || 'Custom Ink';
+          state.inkColor = color;
+          if (inkColorName) inkColorName.textContent = name;
+          if (customInkPicker) customInkPicker.value = color;
+
+          inkBtns.forEach(b => b.classList.remove('ring-2'));
+          if (customColorWrap) customColorWrap.classList.remove('ring-2');
+          btn.classList.add('ring-2');
+
+          render();
+        });
+      });
+
+      // Custom Ink Color Picker
+      if (customInkPicker) {
+        customInkPicker.addEventListener('input', (e) => {
+          state.inkColor = e.target.value;
+          if (inkColorName) inkColorName.textContent = `Custom (${state.inkColor.toUpperCase()})`;
+          inkBtns.forEach(b => b.classList.remove('ring-2'));
+          if (customColorWrap) customColorWrap.classList.add('ring-2');
+          render();
+        });
+      }
+
+      // Pen Texture Style Select
+      if (penTypeSelect) {
+        penTypeSelect.addEventListener('change', (e) => {
+          state.penType = e.target.value;
+          render();
+          showToast(`Pen texture changed to ${penTypeSelect.options[penTypeSelect.selectedIndex].text.split(' (')[0]}`);
+        });
+      }
+
+      // Pen Texture Intensity Slider & +/- Buttons
+      function updatePenTexture(val) {
+        const clamped = Math.max(0, Math.min(100, val));
+        state.penTexture = clamped;
+        penTextureInput.value = clamped;
+        penTextureVal.textContent = clamped + '%';
+        render();
+      }
+
+      if (penTextureInput) {
+        penTextureInput.addEventListener('input', (e) => {
+          updatePenTexture(parseInt(e.target.value, 10));
+        });
+      }
+      if (decTextureBtn) {
+        decTextureBtn.addEventListener('click', () => {
+          updatePenTexture(state.penTexture - 10);
+        });
+      }
+      if (incTextureBtn) {
+        incTextureBtn.addEventListener('click', () => {
+          updatePenTexture(state.penTexture + 10);
+        });
+      }
+
+      // Font Size slider
+      fontSizeInput.addEventListener('input', (e) => {
+        state.fontSize = parseInt(e.target.value, 10);
+        fontSizeVal.textContent = state.fontSize + 'px';
+        render();
+      });
+
+      // Line Spacing slider
+      lineHeightInput.addEventListener('input', (e) => {
+        state.lineHeight = parseInt(e.target.value, 10);
+        lineHeightVal.textContent = state.lineHeight + 'px';
+        render();
+      });
+
+      // Jitter / Imperfection slider
+      jitterInput.addEventListener('input', (e) => {
+        state.jitterLevel = parseInt(e.target.value, 10);
+        jitterVal.textContent = JITTER_LABELS[state.jitterLevel];
+        render();
+      });
+
+      // Toggles
+      shadowToggle.addEventListener('change', (e) => {
+        state.showShadow = e.target.checked;
+        render();
+      });
+
+      punchHolesToggle.addEventListener('change', (e) => {
+        state.punchHoles = e.target.checked;
+        render();
+      });
+
+      // Re-shuffle seed
+      regenerateJitterBtn.addEventListener('click', () => {
+        state.seed = Math.floor(Math.random() * 1000000);
+        render();
+        showToast('Variations re-shuffled!');
+      });
+
+      // Fit to screen / zoom reset
+      zoomResetBtn.addEventListener('click', () => {
+        zoomWrapper.style.transform = 'scale(1)';
+        showToast('Zoom reset to normal');
+      });
+
+      // Download PNG button
+      downloadBtn.addEventListener('click', downloadCanvasPNG);
+      modalDownloadBtn.addEventListener('click', downloadCanvasPNG);
+
+      // Preview & Copy Image Modal (Avoids restricted navigator.clipboard.write in iframe)
+      copyBtn.addEventListener('click', () => {
+        renderedPreviewImg.src = canvas.toDataURL('image/png');
+        imagePreviewModal.classList.remove('hidden');
+      });
+
+      closeImageModalBtn.addEventListener('click', () => {
+        imagePreviewModal.classList.add('hidden');
+      });
+      closeImageModalBottomBtn.addEventListener('click', () => {
+        imagePreviewModal.classList.add('hidden');
+      });
+      imagePreviewModal.addEventListener('click', (e) => {
+        if (e.target === imagePreviewModal) {
+          imagePreviewModal.classList.add('hidden');
+        }
+      });
+
+      // Guide Modal Handlers
+      howToFontBtn.addEventListener('click', () => {
+        guideModal.classList.remove('hidden');
+      });
+      closeModalBtn.addEventListener('click', () => {
+        guideModal.classList.add('hidden');
+      });
+      closeModalBottomBtn.addEventListener('click', () => {
+        guideModal.classList.add('hidden');
+      });
+      guideModal.addEventListener('click', (e) => {
+        if (e.target === guideModal) {
+          guideModal.classList.add('hidden');
+        }
+      });
+    }
+
+    function setActiveFontButton(activeBtn) {
+      const fontBtns = document.querySelectorAll('.font-btn');
+      fontBtns.forEach(b => {
+        b.classList.remove('active', 'border-indigo-600', 'bg-indigo-50/50', 'border-emerald-600', 'bg-emerald-50/50');
+        b.classList.add('border-slate-200');
+        const dot = b.querySelector('.dot');
+        if (dot) dot.classList.replace('bg-indigo-600', 'bg-transparent');
+      });
+
+      if (activeBtn === userCustomFontBtn) {
+        activeBtn.classList.add('active', 'border-emerald-600', 'bg-emerald-50/50');
+        activeBtn.classList.remove('border-slate-200');
+      } else {
+        activeBtn.classList.add('active', 'border-indigo-600', 'bg-indigo-50/50');
+        activeBtn.classList.remove('border-slate-200');
+        const dot = activeBtn.querySelector('.dot');
+        if (dot) dot.classList.replace('bg-transparent', 'bg-indigo-600');
+      }
+    }
+
+    function loadPreset(key) {
+      if (PRESETS[key]) {
+        state.text = PRESETS[key];
+        textInput.value = state.text;
+        updateCharCount();
+        render();
+        showToast(`Loaded "${key}" sample`);
+      }
+    }
+
+    function updateCharCount() {
+      const count = textInput.value.length;
+      charCount.textContent = `${count} character${count === 1 ? '' : 's'}`;
+    }
+
+    // Ensure all web fonts are loaded before initial draw
+    window.addEventListener('load', () => {
+      setupEvents();
+      updateDimensions();
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => {
+          render();
+        });
+      } else {
+        setTimeout(render, 500);
+      }
+    });
+  </script>
+</body>
+</html>
